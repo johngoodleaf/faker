@@ -48,7 +48,7 @@ class Provider(AddressProvider):
         'View', 'Views', 'Village', 'Village', 'Villages', 'Ville', 'Vista', 'Vista', 'Walk', 'Walks', 'Wall', 'Way',
         'Ways', 'Well', 'Wells')
 
-    postal_code_formats = ('?%? %?%', '?%?-%?%', '?%?%?%')
+    postal_code_formats = ('?%? %?%', '?%?%?%')
 
     provinces = (
         'Alberta', 'British Columbia', 'Manitoba', 'New Brunswick',
@@ -125,7 +125,7 @@ class Provider(AddressProvider):
         '{{building_number}} {{street_name}} {{secondary_address}}',
     )
     address_formats = (
-        "{{street_address}}\n{{city}}, {{province_abbr}} {{postcode}}",
+        "{{street_address}}\n{{city}}, {{province_abbr}} {{postalcode}}",
     )
     secondary_address_formats = ('Apt. ###', 'Suite ###')
 

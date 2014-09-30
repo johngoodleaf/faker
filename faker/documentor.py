@@ -1,5 +1,9 @@
+# coding=utf-8
+
 from __future__ import unicode_literals
+
 import inspect
+
 from faker import utils
 
 
@@ -7,8 +11,8 @@ class Documentor(object):
 
     def __init__(self, generator):
         """
-        :param generator: a Generator localized and with providers already filled,
-                          that we want write documentation
+        :param generator: a localized Generator with providers filled,
+                          for which to write the documentation
         :type generator: faker.Generator()
         """
         self.generator = generator
@@ -22,21 +26,23 @@ class Documentor(object):
         formatters = []
         providers = self.generator.get_providers()
         for provider in providers[::-1]:  # reverse
-            if locale and self.generator.provider(self.get_provider_name(provider)).__lang__ != locale:
+            if locale and provider.__lang__ != locale:
                 continue
             formatters.append(
                 (provider, self.get_provider_formatters(provider, **kwargs))
             )
         return formatters
 
-    def get_provider_formatters(self, provider, prefix='fake.', with_args=True, with_defaults=True):
+    def get_provider_formatters(self, provider, prefix='fake.',
+                                with_args=True, with_defaults=True):
 
         formatters = {}
 
         for name, method in inspect.getmembers(provider, inspect.ismethod):
 
             # skip 'private' method and inherited methods
-            if name.startswith('_') or name in self.already_generated: continue
+            if name.startswith('_') or name in self.already_generated:
+                continue
 
             arguments = []
 
@@ -44,14 +50,15 @@ class Documentor(object):
                 # retrieve all parameter
                 argspec = inspect.getargspec(method)
 
-                for i, arg in enumerate([x for x in argspec.args if x not in ['self', 'cls']]):
+                lst = [x for x in argspec.args if x not in ['self', 'cls']]
+                for i, arg in enumerate(lst):
 
                     if argspec.defaults and with_defaults:
 
                         try:
                             default = argspec.defaults[i]
                             if utils.is_string(default):
-                                default = ('"{0}"' if '"' not in default else '"{0}"').format(default)
+                                default = utils.quote(default)
                             else:
                                 # TODO check default type
                                 default = "{0}".format(default)
@@ -72,7 +79,9 @@ class Documentor(object):
                         arguments.append('**' + argspec.keywords)
 
             # build fake method signature
-            signature = "{0}{1}({2})".format(prefix, name, ", ".join(arguments))
+            signature = "{0}{1}({2})".format(prefix,
+                                             name,
+                                             ", ".join(arguments))
 
             # make a fake example
             example = self.generator.format(name)
@@ -86,8 +95,4 @@ class Documentor(object):
 
     @staticmethod
     def get_provider_name(provider_class):
-        name = provider_class.__module__.split('.')[-1]
-        if name == 'providers':
-            name = 'base'
-        return name
-
+        return provider_class.__provider__

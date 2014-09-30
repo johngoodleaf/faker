@@ -1,12 +1,13 @@
+# coding=utf-8
+
 from __future__ import unicode_literals
 from . import BaseProvider
 import random
 import re
 from time import time, mktime
-from datetime import timedelta
+from datetime import timedelta, datetime
 from faker.utils.datetime_safe import date, datetime, real_date, real_datetime
 from faker.utils import is_string
-
 
 def datetime_to_timestamp(dt):
     return mktime(dt.timetuple())
@@ -243,7 +244,12 @@ class Provider(BaseProvider):
         :example DateTime('1265-03-22 21:15:52')
         :return datetime
         """
-        return datetime.fromtimestamp(random.randint(-62135600400, int(time())))
+        ts = random.randint(-62135600400, int(time()))
+        # NOTE: using datetime.fromtimestamp(ts) directly will raise
+        #       a "ValueError: timestamp out of range for platform time_t"
+        #       on some platforms due to system C functions;
+        #       see http://stackoverflow.com/a/10588133/2315612
+        return datetime.fromtimestamp(0) + timedelta(seconds=ts)
 
     @classmethod
     def iso8601(cls):
@@ -319,28 +325,28 @@ class Provider(BaseProvider):
         """
         :example DateTime('1964-04-04 11:02:02')
         """
-        return cls.date_time_between('-100y')
+        return cls.date_time_between('-%dy' % (datetime.now().year % 100))
 
     @classmethod
     def date_time_this_decade(cls):
         """
         :example DateTime('2004-04-04 11:02:02')
         """
-        return cls.date_time_between('-10y')
+        return cls.date_time_between('-%dy' % (datetime.now().year % 10))
 
     @classmethod
     def date_time_this_year(cls):
         """
         :example DateTime('2012-04-04 11:02:02')
         """
-        return cls.date_time_between('-1y')
+        return cls.date_time_between('-%dm' % (datetime.now().month))
 
     @classmethod
     def date_time_this_month(cls):
         """
         :example DateTime('2012-04-04 11:02:02')
         """
-        return cls.date_time_between('-30d')
+        return cls.date_time_between('-%dd' % (datetime.now().day))
 
     @classmethod
     def am_pm(cls):
@@ -375,7 +381,4 @@ class Provider(BaseProvider):
 
     @classmethod
     def timezone(cls):
-        return cls.random_element(cls.countries)['timezones'].pop(0)
-
-
-
+        return random.choice(cls.random_element(cls.countries)['timezones'])

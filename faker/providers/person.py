@@ -1,3 +1,5 @@
+# coding=utf-8
+
 from __future__ import unicode_literals
 from . import BaseProvider
 
@@ -11,7 +13,7 @@ class Provider(BaseProvider):
 
     def name(self):
         """
-        :example 'Jhon Doe'
+        :example 'John Doe'
         """
         pattern = self.random_element(self.formats)
         return self.generator.parse(pattern)
